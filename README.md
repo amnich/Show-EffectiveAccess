@@ -13,3 +13,6 @@ Module [PowerShellAccessControl](https://github.com/PowerShellOrg/PowerShellAcce
   You must have full access to a path for best results, because the directories are loaded with your credentials and then checked for user access.
   
   Form based on [this post](https://blogs.technet.microsoft.com/heyscriptingguy/2010/06/15/hey-scripting-guy-how-can-i-use-the-windows-forms-treeview-control/) by Ravikanth  
+
+# Version 1.1
+Added switch ShowAll to also show directories where user has no access. Marked red in tree.
