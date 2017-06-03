@@ -1,7 +1,7 @@
 function Show-EffectiveAccess {
     <#
 	.SYNOPSIS
-	Show GUI with effective access rights of a user on directories on given path as a tree.
+	Show GUI with effective access right of a user on directories on given path as a tree.
 	Module PowerShellAccessControl is required.
 	https://github.com/PowerShellOrg/PowerShellAccessControl
 	
@@ -12,6 +12,10 @@ function Show-EffectiveAccess {
 	.PARAMETER RootPath
 	Root of directory structure.
 	Default current path.
+	
+	.PARAMETER ShowAll
+	Show also directories where user has no access.
+	Marked red.
 	
 	.EXAMPLE
 	Show-EffectiveAccess -RootPath C:\ -User tuser
@@ -25,7 +29,8 @@ function Show-EffectiveAccess {
     param(
         $User = $env:username,
         [ValidateScript( {Test-Path $_ -PathType ‘Container’})]
-        $RootPath = (Get-Location).Path
+        $RootPath = (Get-Location).Path,
+		[switch]$ShowAll
     )
     BEGIN {
         if ($rootPath -match '\\$') {
@@ -33,6 +38,7 @@ function Show-EffectiveAccess {
         }
         $script:user = $user
         $script:rootPath = $rootPath
+		$script:showAll = $ShowAll
         try {
             Import-Module PowerShellAccessControl
         }
@@ -44,12 +50,14 @@ function Show-EffectiveAccess {
             param ( 
                 $selectedNode, 
                 $name, 
-                $tag 
+                $tag,
+				$color = "Transparent"
             ) 
             $newNode = new-object System.Windows.Forms.TreeNode  
             $newNode.Name = $name 
             $newNode.Text = $name 
             $newNode.Tag = $tag 
+			$newNode.BackColor = $color
             $selectedNode.Nodes.Add($newNode) | Out-Null 
             return $newNode 
         } 
@@ -71,13 +79,20 @@ function Show-EffectiveAccess {
 	
                     if ($this.SelectedNode.Tag -eq "Directory" -and !$this.SelectedNode.Nodes) {			
                         Get-ChildItem $this.SelectedNode.FullPath -Directory -ErrorAction Continue| ForEach-Object { 
+							$lastFolder = $_.Name
                             try {
                                 if (Get-EffectiveAccess -Path $_.Fullname -Principal $script:user) {
                                     $parentNode = Add-Node $this.SelectedNode $_.Name "Directory"			
                                 }
+								elseif($ShowAll){
+									$parentNode = Add-Node $this.SelectedNode $lastFolder "DirectoryNA" "Red"
+								}
                             }
                             catch {
                                 Write-Warning "$($Error[0] | out-string)"
+								if ($ShowAll){
+									$parentNode = Add-Node $this.SelectedNode $lastFolder "DirectoryNA" "Red"
+								}
                             }
                         }
 				
@@ -103,9 +118,15 @@ function Show-EffectiveAccess {
                     if (Get-EffectiveAccess -Path $folder.Fullname -Principal $script:user) {
                         $parentNode = Add-Node $script:directoryNodes $folder.Name "Directory" 
                     }
+					elseif($ShowAll){
+						$parentNode = Add-Node $script:directoryNodes $folder.Name "DirectoryNA" "red"
+					}
                 }
                 catch {	
                     Write-Warning "$($Error[0] | out-string)"
+					if ($ShowAll){
+						$parentNode = Add-Node $script:directoryNodes $folder.Name "DirectoryNA" "red"
+					}
                 }
 			
             } 
