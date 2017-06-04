@@ -78,25 +78,7 @@ function Show-EffectiveAccess {
                     $rtbDescription.Text = "" 	
 	
                     if ($this.SelectedNode.Tag -eq "Directory" -and !$this.SelectedNode.Nodes) {			
-                        Get-ChildItem $this.SelectedNode.FullPath -Directory -ErrorAction Continue| ForEach-Object { 
-							$lastFolder = $_.Name
-                            try {
-                                if (Get-EffectiveAccess -Path $_.Fullname -Principal $script:user) {
-                                    $parentNode = Add-Node $this.SelectedNode $_.Name "Directory"			
-                                }
-								elseif($ShowAll){
-									$parentNode = Add-Node $this.SelectedNode $lastFolder "DirectoryNA" "Red"
-								}
-                            }
-                            catch {
-                                Write-Warning "$($Error[0] | out-string)"
-								if ($ShowAll){
-									$parentNode = Add-Node $this.SelectedNode $lastFolder "DirectoryNA" "Red"
-								}
-                            }
-                        }
-				
-                        $frmMain.refresh() 
+                        Add-SubNodes -Node $this.SelectedNode				
                     }
                     if ($this.SelectedNode.Tag -eq "Directory") {
                         try {
@@ -106,33 +88,45 @@ function Show-EffectiveAccess {
                             $access = "Failed to get results for " + $this.SelectedNode.FullPath
                         }
                         $rtbDescription.Text = $($access | Format-Table -AutoSize | Out-String)
-                        $frmMain.refresh() 
                     }
+					if ($this.SelectedNode.Tag -eq "DirectoryNA"){
+						$rtbDescription.Text = try {
+							$((Get-Acl $This.SelectedNode.FullPath).access  | Format-Table -AutoSize | Out-String) }                       
+						catch{}
+					}
                     $this.SelectedNode.Expand()
+					$frmMain.refresh()
                 }) 
-	    
-	    
-            $folders = Get-ChildItem "$($script:rootPath)\" -Directory 
-            foreach ($folder in $folders) { 
-                try {
-                    if (Get-EffectiveAccess -Path $folder.Fullname -Principal $script:user) {
-                        $parentNode = Add-Node $script:directoryNodes $folder.Name "Directory" 
-                    }
-					elseif($ShowAll){
-						$parentNode = Add-Node $script:directoryNodes $folder.Name "DirectoryNA" "red"
-					}
-                }
-                catch {	
-                    Write-Warning "$($Error[0] | out-string)"
-					if ($ShowAll){
-						$parentNode = Add-Node $script:directoryNodes $folder.Name "DirectoryNA" "red"
-					}
-                }
-			
-            } 
-            $script:directoryNodes.Expand() 
+	    	    
+            Add-Subnodes -Node $script:directoryNodes              
         } 
-	 
+	 	
+		function Add-SubNodes{
+		param(
+			[System.Windows.Forms.TreeNode]
+			$Node
+		)		
+			$folders= Get-ChildItem "$($Node.FullPath)\" -Directory -ErrorAction Continue
+			foreach ($folder in $folders){ 
+				try {
+		            if (Get-EffectiveAccess -Path $folder.Fullname -Principal $script:user) {
+		               $null =  Add-Node $Node $folder.Name "Directory"			
+		            }
+					elseif($ShowAll){
+						$null = Add-Node $Node $folder.Name "DirectoryNA" "Red"
+						
+					}
+		        }
+		        catch {
+		            Write-Warning "$($Error[0] | out-string)"
+					if ($ShowAll){
+						$null = Add-Node $Node $folder.Name "DirectoryNA" "Red"
+					}
+		        }
+		    }
+			$Node.Expand()
+		}
+		
         #Generated Form Function 
         function Show-frmMain { 	
 		 
