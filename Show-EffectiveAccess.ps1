@@ -91,7 +91,7 @@ function Show-EffectiveAccess {
                     }
 					if ($this.SelectedNode.Tag -eq "DirectoryNA"){
 						$rtbDescription.Text = try {
-							$((Get-Acl $This.SelectedNode.FullPath).access  | Format-Table -AutoSize | Out-String) }                       
+							$((Get-Acl $This.SelectedNode.FullPath).access | Out-String) }                       
 						catch{}
 					}
                     $this.SelectedNode.Expand()
