@@ -15,6 +15,7 @@ Module [PowerShellAccessControl](https://github.com/PowerShellOrg/PowerShellAcce
   Form based on [this post](https://blogs.technet.microsoft.com/heyscriptingguy/2010/06/15/hey-scripting-guy-how-can-i-use-the-windows-forms-treeview-control/) by Ravikanth  
 
 # Version 1.1
-Added switch ShowAll to also show directories where user has no access. Marked red in tree.
-Added show ACL on restriced folders.
+  Added switch ShowAll to also show directories where user has no access. Marked red in tree.
+
+  Added show ACL on restriced folders.
 
