@@ -16,3 +16,5 @@ Module [PowerShellAccessControl](https://github.com/PowerShellOrg/PowerShellAcce
 
 # Version 1.1
 Added switch ShowAll to also show directories where user has no access. Marked red in tree.
+Added show ACL on restriced folders.
+
